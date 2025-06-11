@@ -1,0 +1,38 @@
+
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: serverpod-migration-job-ts7
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+      - name: timeweb-registry-secret
+      containers:
+      - name: migrator-ts7
+        image: dbe81550-wise-chickadee.registry.twcstorage.ru/ts7-server:latest
+        command: ["/usr/local/bin/server", "--apply-migrations", "--mode", "production", "--role", "maintenance"]
+
+        envFrom:
+        - configMapRef:
+            name: serverpod-config-ts7
+        env:
+        - name: SERVERPOD_DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: serverpod-secrets-ts7
+              key: database-password
+        - name: SERVERPOD_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: serverpod-secrets-ts7
+              key: redis-password
+        - name: SERVERPOD_SERVICE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: serverpod-secrets-ts7
+              key: service-secret
+      restartPolicy: Never
+  backoffLimit: 2
+    
